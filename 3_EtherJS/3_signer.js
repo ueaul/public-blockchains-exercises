@@ -20,10 +20,14 @@
 // Hint: As you did in file 1_wallet and 2_provider.
 
 // Your code here!
-
+require('dotenv').config();
+const ethers = require("ethers");
 // b. Create a Goerli provider.
 
 // Your code here!
+const providerKey = process.env.INFURA_KEY;
+const goerliInfuraUrl = `${process.env.INFURA_GOERLI_API_URL}${providerKey}`;
+const goerliProvider = new ethers.JsonRpcProvider(goerliInfuraUrl);
 
 // Exercise 1. Create a Signer.
 ///////////////////////////////
@@ -40,16 +44,23 @@
 // Hint2: if you get an error here, check that the private key begins with "0x".
 
 // Your code here!
-
+let signer = new ethers.Wallet(process.env.METAMASK_1_PRIVATE_KEY);
+console.log(signer.address);
 // Exercise 2. Sign something.
 //////////////////////////////
 
 const sign = async (message = 'Hello world') => {
-    
-    // Your code here!
+    const signature = await signer.signMessage(message);
+    const verifiedSigner = ethers.verifyMessage(message, signature);
+    if (verifiedSigner === signer.address) {
+        console.log('Signature is valid.');
+    }
+    else {
+        console.log('Signature is NOT valid.');
+    }
 };
 
-// sign();
+sign();
 
 // Exercise 3. Connect to the blockchain. 
 /////////////////////////////////////////
@@ -61,11 +72,12 @@ const sign = async (message = 'Hello world') => {
 // Hint: .getNonce()
 
 const connect = async() => {
-    
-    // Your code here!
+    signer = await signer.connect(goerliProvider);
+    let nonce = await signer.getNonce();
+    console.log("Nonce: " + nonce);
 };
 
-// connect();
+connect();
 
 // c. Replace the signer created above at exercise 1 with one that takes the 
 // Goerli provider as second parameter. This is necessary even
@@ -74,7 +86,7 @@ const connect = async() => {
 // and the remaning of the exercises. If unclear, just check the solution :)
 
 // Replace the signer created above.
-
+signer = new ethers.Wallet(process.env.METAMASK_1_PRIVATE_KEY, goerliProvider);
 
 
 // Exercise 4. Send a transaction.
@@ -93,15 +105,34 @@ const connect = async() => {
 // then compare the balance of both addresses before and after.
 // Hint: `sendTransaction()` returns an object with a `wait()` method.
 // Hint2: `formatEther()` can print a nicer balance.
-
+const account1 = process.env.METAMASK_1_ADDRESS;
 const account2 = process.env.METAMASK_2_ADDRESS;
 
 const sendTransaction = async () => {
+    let balanceBefore1 = await goerliProvider.getBalance(account1);
+    let balanceBefore2 = await goerliProvider.getBalance(account2);
 
-    // Your code here!
+    let id = await signer.sendTransaction({
+        to: account2,
+        value: ethers.parseEther("0.01")
+    });
+    console.log("Transaktion: " + id);
+
+    console.log('Transaction is in the mempool...');
+    await id.wait();
+
+    console.log("Transaktion beendet");
+
+    let balanceAfter1 = await goerliProvider.getBalance(account1);
+    console.log("Balance zu Beginn Account 1: " + ethers.formatEther(balanceBefore1));
+    console.log("Balance nach Transaktion Account 1: " + ethers.formatEther(balanceAfter1));
+
+    let balanceAfter2 = await goerliProvider.getBalance(account2);
+    console.log("Balance zu Beginn Account 2: " + ethers.formatEther(balanceBefore2));
+    console.log("Balance nach Transkation Account 2: " + ethers.formatEther(balanceAfter2));
 };
 
-// sendTransaction();
+//sendTransaction();
 
 
 // Exercise 5. Meddling with Gas.
@@ -166,12 +197,32 @@ const sendTransaction = async () => {
 
 // a, b, c. 
 const checkGasPrices = async () => {
+    let id = await signer.populateTransaction({
+        to: account2,
+        value: ethers.parseEther("0.01")
+    });
+    console.log('Gas Limit', id.gasLimit);
+    console.log('Max Fee per Gas (GWEI)', ethers.formatUnits(id.maxFeePerGas, 'gwei'));
+    console.log('Max Priority Fee (GWEI)', ethers.formatUnits(id.maxPriorityFeePerGas, 'gwei'));
 
-    // Your code here!
+    console.log('---');
+    const feeData = await goerliProvider.getFeeData();
+    
+    console.log('Legacy Gas Price (GWEI)', ethers.formatUnits(feeData.gasPrice, 'gwei'));
+    console.log('Max Fee per Gas (GWEI)', ethers.formatUnits(feeData.maxFeePerGas, 'gwei'));
+    console.log('Max Priority Fee (GWEI)', ethers.formatUnits(feeData.maxPriorityFeePerGas, 'gwei'));
+    
+    console.log('');
+    const lastBlock = await goerliProvider.getBlock("latest");
+    console.log('Base Fee Previous Block (GWEI)', ethers.formatUnits(lastBlock.baseFeePerGas, 'gwei'));
+
+    // maxFeePerGas = (2 * baseFeePerGas) + maxPriorityFeePerGas
+    console.log('');
+
 
 };
 
-// checkGasPrices();
+//checkGasPrices();
 
 // d. Now that you understand everything, send a new transaction that is just
 // a little cheaper in terms of gas, compared to defaults.
@@ -188,12 +239,22 @@ const checkGasPrices = async () => {
 
 // d. e.
 const sendCheaperTransaction = async () => {
+    const feeData = await goerliProvider.getFeeData();
 
-    // Your code here!
+    tx = await signer.sendTransaction({
+        to: account2,
+        value: ethers.parseEther("0.01"),
+        maxFeePerGas: feeData.maxFeePerGas - 5000000000n
+    });
+
+    console.log('Transaction is in the mempool...');
+    let receipt = await tx.wait();
+    console.log(receipt);
+    console.log('Transaction mined!');
 
 };
 
-// sendCheaperTransaction();
+sendCheaperTransaction();
 
 
 
@@ -229,9 +290,24 @@ const sendCheaperTransaction = async () => {
 // equal to sender address.
 
 const resubmitTransaction = async () => {
+    let nextNonce = await signer.getNonce();
+    console.log('Next Nonce is:', nextNonce);
 
-
-    // Your Code here!
+    const feeData = await goerliProvider.getFeeData();
+    
+    tx = await signer.sendTransaction({
+        to: account2,
+        value: ethers.parseEther("0.001"),
+        maxFeePerGas: 2n*feeData.maxFeePerGas,
+        maxPriorityFeePerGas: 2n*feeData.maxPriorityFeePerGas,
+        nonce: nextNonce
+    });
+    console.log(tx);
+    
+    console.log('Transaction is in the mempool...');
+    let receipt = await tx.wait();
+    console.log(receipt);
+    console.log('Transaction mined!');
 
 };
 
