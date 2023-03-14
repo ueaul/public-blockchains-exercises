@@ -77,7 +77,7 @@ const network = async () => {
 };
 
 // which you can then call:
-// network();
+network();
 
 // The second (less compact) notation has the advantage that we can invoke
 // the code only when needed, so it is preferred in this exercise sheet.
@@ -110,7 +110,7 @@ const blockNum = async () => {
     console.log('Mainnet block number: ', blockNumber);
 };
 
-// blockNum();
+blockNum();
 
 // b. The Ethereum mainnet is one of the most secure blockchains in the world.
 // The testnets of Ethereum are a bit less secure because they might have 

@@ -39,8 +39,8 @@
 // be executed, until you tell the process to stop. 
 
 // This line will tell the process to stop.
-process.exit(0);
-console.log('I am sad line...I will not be printed to console :(');
+//process.exit(0);
+//console.log('I am sad line...I will not be printed to console :(');
 
 // a. Move the sad line above and below `process.exit(0);` to check that the
 // process stops where it is intended to. When you are done, comment out both
@@ -52,6 +52,13 @@ console.log('I am sad line...I will not be printed to console :(');
 // https://javascript.info/function-basics
 
 let exercise = 0;
+
+function exit() {
+    console.log("Exercise No: " + exercise + " completed");
+    process.exit(0);
+}
+
+
 
 // Your code here!
 
@@ -70,8 +77,15 @@ let exercise = 0;
 // for all three functions? 
 
 // Your code here!
+const exit3 = function() {
+    console.log("Exercise No: " + exercise + " completed");
+    process.exit(0);
+}
 
-
+const exit2 = () => {
+    console.log("Exercise No: " + exercise + " completed");
+    process.exit(0);
+}
 // Exercise 1. NPM Warm Up.
 ///////////////////////////
 exercise = 1;
@@ -89,8 +103,7 @@ exercise = 1;
 // Hint3: don't forget to uncomment the call to `exit()`.
 
 require('dotenv').config();
-
-// exit();
+//exit();
 
 // Exercise 2. Create .env file.
 ////////////////////////////////
@@ -111,9 +124,9 @@ exercise = 2;
 // Hint: you can copy .env_sample, modify its content and save it as .env.
  
 // See if it worked.
-console.log(process.env);
+//console.log(process.env);
 
-// exit();
+//exit();
 
 // Exercise 3. Check the content of the .env file.
 //////////////////////////////////////////////////
@@ -128,8 +141,12 @@ exercise = '3a';
 // Hint: https://javascript.info/ifelse
 
 // Your code here!
+let privateKey = process.env.METAMASK_PRIVATE_KEY;
+if (privateKey == ""){
+    console.log("PrivateKey is empty");
+}
 
-// exit();
+//exit();
 
 // b. Create an array with all the names of the variables written in the .env
 // file. Then print the lenght of the array.
@@ -138,6 +155,13 @@ exercise = '3a';
 exercise = '3b';
 
 // Your code here!
+let variablesToCheck = [
+    "INFURA_KEY", "INFURA_GOERLI_API_URL", "INFURA_MAINNET_API_URL",
+    "ALCHEMY_KEY", "ALCHEMY_GOERLI_API_URL", "ALCHEMY_MAINNET_API_URL",
+    "METAMASK_1_ADDRESS", "METAMASK_1_PRIVATE_KEY",
+    "METAMASK_2_ADDRESS", "METAMASK_2_PRIVATE_KEY",
+    "ETHERSCAN_KEY"
+];
 
 // exit();
 
@@ -151,15 +175,24 @@ exercise = '3b';
 
 // Solution 1. forEach.
 variablesToCheck.forEach(v => {
-    // Your code here!
+    if (!process.env[v]){
+        console.log(process.env[v]);
+        console.log("Missing " + v + ", fix your .env file");
+    }
 });
+//exit();
 
 // Solution 2. For-loop.
-
+for (let i = 0; i < variablesToCheck.length; i++){
+    if (!process.env[variablesToCheck[i]]){
+        console.log(process.env[v]);
+        console.log("Missing " + v + ", fix your .env file");
+    }
+}
 // Your code here!
 
 
-// exit();
+//exit();
 
 
 // Exercise 4. Create a Random Wallet.
@@ -172,8 +205,13 @@ const ethers = require("ethers");
 // and the mnenomic phrase.
 // Hint: ethers.Wallet.createRandom();
 
-
-// exit();
+const wallet = ethers.Wallet.createRandom();
+console.log();
+console.log("Address:", wallet.address);
+console.log("Private key:", wallet.privateKey);
+console.log("Mnemonic:", wallet.mnemonic.phrase);
+console.log();
+//exit();
 
 // b. Bonus. Print the derivation path of the wallet and check that it is
 // equal to `baseDevPath`. 
@@ -195,7 +233,7 @@ console.log("Derivation path:", wallet.path);
 // Your code here!
 
 
-// exit();
+//exit();
 
 // Exercise 5. Bonus. Create a Hierarchical Deterministic Wallet.
 /////////////////////////////////////////////////////////////////
@@ -208,5 +246,13 @@ exercise = 5;
 // Hint: You need to append an index to the derivation path.
 
 // Your code here!
+let mnemonic = wallet.mnemonic.phrase;
 
-// exit();
+let path, myWallet;
+for (let i = 0; i < 10; i++) {
+  path = `${baseDevPath}${i}`;
+  myWallet = ethers.HDNodeWallet.fromPhrase(mnemonic, path);
+  console.log("Address", i, myWallet.address);
+  console.log("Private key", i, myWallet.privateKey);
+}
+exit();
