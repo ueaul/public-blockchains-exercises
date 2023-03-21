@@ -61,7 +61,7 @@ const getNonce = async() => {
     console.log('Your nonce is ' + nonce);
 };
 
-// getNonce();
+getNonce();
 
 
 // Exercise 4. Check gas.

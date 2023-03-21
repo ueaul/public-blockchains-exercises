@@ -23,8 +23,6 @@
 const hre = require("hardhat");
 console.log('Hardhat\'s default network:', hre.config.defaultNetwork);
 
-return;
-
 
 // Exercise 1. Understand Ethers in Hardhat.
 ////////////////////////////////////////////
@@ -37,19 +35,17 @@ return;
 
 // a. Require ethers and print the version of Ethers, just to be sure.
 
-const ethers = require("ethers");
-console.log("Ethers version:", ethers.version);
-
-return;
+// Your code here!
 
 // b. Hardhat uses v5 because it offers a plugin that is a wrapped version of
 // Ethers which makes things a little easier. This is available under
 // hre.ethers (require statement above).
 // Print the version of this plugin, it should be the same as above.
 
-console.log("HH Wrapped Ethers version:", hre.ethers.version);
+// Your code here!
+const ethers = require("ethers");
+console.log("Ethers version:", ethers.version);
 
-return;
 
 // Exercise 1. Create a new Solidity contract.
 //////////////////////////////////////////////
@@ -83,7 +79,7 @@ return;
 // a. Update with your contract's name and address.
 // Hint: The address is known only after deployment.
 const contractName = "Lock2";
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const contractAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 
 // Let's continue inside the async main function (the recommended Hardhat
 // pattern of execution).
@@ -95,51 +91,46 @@ async function main() {
   // execute: npx hardhat node
   // Hint: hre.ethers.getSigners() returns an array.
 
+  // Your code here!
   const hardhatSigners = await hre.ethers.getSigners();
   const hhSigner = hardhatSigners[0];
 
   console.log("HH Signer address:", hhSigner.address);
-
-  // return
 
   // c. Get your new contract. Hardhat Ethers automatically fetches the ABI from
   // the artifacts, so you don't need to specify it. Use the method
   // hre.ethers.getContractAt(<name>, <address>, <signer>)
   // then print the contract address.
 
-  const lock = await hre.ethers.getContractAt(contractName,
-                                              contractAddress,
-                                              hhSigner);  
-  
-
-  console.log(contractName + " address", lock.address);
+  // Your code here!
+  const lock = await hre.ethers.getContractAt(contractName, contractAddress, hhSigner);  
+  console.log(lock.address);
 
   // d. Bonus. You can get the contract also without Hardhat's wrapped Ethers.
   // The standard (here V5) Ethers.JS requires a bit more code, but is is 
   // useful to understand how it works.
-
-  // First you need to setup a JSON RPC provider. In V5 the code is a bit
-  // different, as shown below.
 
   const getContractManual = async(signer = hhSigner, 
                                   address = contractAddress) => {
     
     // d.1 Fetch the ABI from the artifacts 
     // (it expects contract name = file name).
+
+    // Your code here!
     const lock2ABI = require("../artifacts/contracts/" + contractName + 
                             ".sol/" + contractName + ".json").abi;
-
-
     // d.2 Create the contract and print the address.
+
+    // Your code here!
+
     const lock = new ethers.Contract(address, lock2ABI, signer);
 
     console.log(contractName + " address standard Ethers", lock.address);
-
     return lock;
 
   };
 
-  // const lock2 = await getContractManual();
+  const lock2 = await getContractManual();
   
   // e. Print out the public variables of the contract: owner and unlockTime.
   // Hint: Public variables have automatic getters that can be invoked.
@@ -147,6 +138,8 @@ async function main() {
   const readContract = async (lockContract = lock) => {
       
     // Print the owner of the lock.
+   
+    // Your code here!
     const owner = await lock.owner();
     console.log("Owner of " + contractName, owner);
 
@@ -164,8 +157,7 @@ async function main() {
     console.log(contractName + " unlock date:", date);
   };
 
-  // await readContract();
-
+  await readContract();
   // Exercise 3. Interact with your new Solidity contract (WRITE).
   ////////////////////////////////////////////////////////////////
 
@@ -191,7 +183,7 @@ async function main() {
     console.log('The balance after withdrawing is ', b2);
   };
 
-  // await withdrawAttempt1();
+  await withdrawAttempt1();
   
   // Exercise 3. Remove the check for unlock date (WRITE).
   ////////////////////////////////////////////////////////////////////
@@ -204,17 +196,17 @@ async function main() {
   const withdrawAgain = async() => {
     const newContractAddress = "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1";
 
-      // Wrapped Ethers.
-        const newLock = await hre.ethers.getContractAt(contractName,
-          newContractAddress,
-          hhSigner);
-
-      // Standard Ethers (V5).
-      // const newLock = await getContractManual(hhSigner, newContractAddress);
-
-      // Can also print:
-      // console.log(newLock.address);
-      // await readContract(newLock);  
+    // Wrapped Ethers.
+    const newLock = await hre.ethers.getContractAt(contractName,
+                                                   newContractAddress,
+                                                   hhSigner);
+    
+    // Standard Ethers (V5).
+    // const newLock = await getContractManual(hhSigner, newContractAddress);
+    
+    // Can also print:
+    // console.log(newLock.address);
+    // await readContract(newLock);  
 
     await withdrawAttempt1(newLock);
   };
@@ -231,10 +223,9 @@ async function main() {
   // `require` statement in the withdraw method.
 
   const triggerNotOwner = async () => {
-    const thirdContractAddress = "0x59b670e9fA9D0A427751Af201D676719a970857b";
-
+    
     // b.1 Add the RPC url as shown after starting `npx hardhat node`
-    const hardhatUrl = "http://127.0.0.1:8545";
+    const hardhatUrl = "FILL_THIS_VALUE";
     // v5
     const hardhatProvider = new ethers.providers.JsonRpcProvider(hardhatUrl);
     // For your reference, in v6 we used:
@@ -246,22 +237,14 @@ async function main() {
     require('dotenv').config({ path: "../.env" });
 
     // b.3 Create a new signer.
-    const nonOwner = new ethers.Wallet(process.env.METAMASK_1_PRIVATE_KEY,
-                                       hardhatProvider);
+    
+    // Your code here!
 
     // b.4 Get the contract instance and then try to withdraw.
     // Hint: You could use the method `getContractManual` created before
 
-    // Wrapped Ethers.
-    const newLock = await hre.ethers.getContractAt(contractName,
-      thirdContractAddress,
-      nonOwner);
-
-   // Standard Ethers (V5)
-   // const newLock = await getContractManual(nonOwner, thirdContractAddress);
-
-    await newLock.withdraw();
-  
+    // Your code here!
+    
   };
 
   // await triggerNotOwner();
