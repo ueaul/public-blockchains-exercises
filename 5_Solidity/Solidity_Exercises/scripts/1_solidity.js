@@ -132,16 +132,20 @@ async function readVar() {
     const signers = await hre.ethers.getSigners();
     const signer = signers[0];
 
-    const contractName = "Lock2";
+    const contractName = "Lock";
     const contractAdress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
-    const lock = await hre.ethers.getContractAt(contractName, contractAdress, signer);
+    const lock = await hre.ethers.getContractAt(
+        contractName,
+        contractAdress,
+        signer
+    );
 
-    console.log(contractName + "globalVar" + await lock.globalVar());
+    //console.log(contractName + " globalVar:" + await lock.GLOBAL_VAR());
 
 };
 
-// readVar();
+readVar();
 
 // Bonus. Exercise 2B. Utility Function.
 ////////////////////////////////////////
@@ -204,6 +208,13 @@ async function constructor() {
     console.log("Exercise 3: Constructor");
 
     // Your code here!
+    const cName = "Lock3";
+    const cAdress ="0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
+    const lock = await getContractAndSigner(cName, cAdress);
+
+    //let blockNum = await lock.blockNr();
+    //console.log(contractName + " blockNumber: ", Number(blockNum))
 }
 
 constructor();
@@ -249,9 +260,25 @@ async function events() {
     console.log("Exercise 4: Events");
 
     // Your code here!
+    const cName = "Lock3";
+    const cAdress ="0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
+    const lock = await getContractAndSigner(cName, cAdress);
+
+    lock.on("WithdrawalAttempt", (...args) => {
+        console.log("Attempted Withdrawal");
+        console.log(args);
+    });
+
+    try {
+        await lock.withdraw();
+    }
+    catch (e) {
+        console.log("An exception occurred.");
+    }
 }
 
-// events();
+//events();
 
 // f. Bonus. You can query all the past events of a smart contract using
 
@@ -264,6 +291,7 @@ async function getAllEvents() {
     console.log("Bonus. Exercise 4: Get All Events");
 
     // Your code here!
+    const cName = "Lock3";
 }
 
 // getAllEvents();
@@ -308,19 +336,78 @@ async function mappings() {
     console.log("Advanced. Exercise 5: Mappings (and payable)");
 
     // Your code here!
+    console.log("Advanced. Exercise 5: Mappings (and payable)");
+  
+   // Getting the contract.
+   const cName = "Lock4";
+   // Change the contract address to your deployed contract address.
+   const cAddress = "YOUR_CONTRACT_ADDRESS";
+  
+   // Get five contracts for 5 signers.
+   const [ lock0, signer0 ] = await getContractAndSigner(cName, cAddress, 0);
+   const [ lock1, signer1 ] = await getContractAndSigner(cName, cAddress, 1);
+   const [ lock2, signer2 ] = await getContractAndSigner(cName, cAddress, 2);
+   const [ lock3, signer3 ] = await getContractAndSigner(cName, cAddress, 3);
+   const [ lock4, signer4 ] = await getContractAndSigner(cName, cAddress, 4);
+   
+   // This will not be added as owner.
+   const [ lock5, signer5 ] = await getContractAndSigner(cName, cAddress, 5);
+  
+    // Let's have 5 owners in total.
+    
+    // Default signer adds two other owners.
+    await lock0.addOwner(signer1.address);
+    await lock0.addOwner(signer2.address);
+    // Owner at index 2 adds another one.
+    await lock2.addOwner(signer3.address);
+    // Owner at index 3 adds another one.
+    await lock3.addOwner(signer4.address);
+  
+    // Let's count how many we have.
+    await getContractStatus(lock0);
+  
+    // Let's check the mapping values.
+    console.log('Mappings for signers (0-5):')
+    console.log(await lock0.owners(signer0.address));
+    console.log(await lock0.owners(signer1.address));
+    console.log(await lock0.owners(signer2.address));
+    console.log(await lock0.owners(signer3.address));
+    console.log(await lock0.owners(signer4.address));
+    console.log(await lock0.owners(signer5.address));
+  
+    // Each owner should get 0.2 Ether. Let's check whether it works.
+    await checkBalanceBeforeAfter(signer0, lock0);
+    await checkBalanceBeforeAfter(signer1, lock1);
+    await checkBalanceBeforeAfter(signer2, lock2);
+    await checkBalanceBeforeAfter(signer3, lock3);
+    await checkBalanceBeforeAfter(signer4, lock4);
 }
 
 const checkBalanceBeforeAfter = async (signer, lockContract) => {
     // Check the balance change for signer.
   
     // Your code here!
-    
+    let b1 = await signer.getBalance();
+    let tx = await lockContract.withdraw();
+    await tx.wait();
+    let b2 = await signer.getBalance();
+    // With Ethers v5 we need to explicitely cast to BigInt. 
+    let diff = BigInt(b2) - BigInt(b1);
+    b2 = ethers.utils.formatEther(diff);
+    console.log('The balance after withdrawing is net +' + b2 + ' ETH');
+  
+    await getContractStatus(lockContract);
 };
 
 const getContractStatus = async lockContract => {
     // Report info about contract.
   
     // Your code here!
+    let leftInContract = await hre.ethers.provider.getBalance(lockContract.address);
+    leftInContract = ethers.utils.formatEther(leftInContract);
+    let numOwners = await lockContract.ownerCounter();
+    console.log('On lock there is +' + leftInContract + ' ETH left and ' + 
+                    numOwners + " owners now");
 };
 
 // mappings();
